@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineVault — Movie Watchlist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       CSS VARIABLES
+    ═══════════════════════════════════════════════════════ */
+    :root {
+      --bg:         #0a0c0f;
+      --bg-2:       #0f1116;
+      --surface:    #13161c;
+      --surface-2:  #191d25;
+      --surface-3:  #1f242e;
+      --border:     rgba(255,255,255,.08);
+      --border-2:   rgba(255,255,255,.14);
+      --text:       #f0ecdf;
+      --text-2:     #9a9488;
+      --text-3:     #5c5852;
+      --gold:       #c9a84c;
+      --gold-2:     #e8c96a;
+      --gold-glow:  rgba(201,168,76,.18);
+      --red:        #e05252;
+      --red-light:  rgba(224,82,82,.12);
+      --green:      #4caf7d;
+      --green-light:rgba(76,175,125,.12);
+      --blue:       #5b8ef0;
+      --blue-light: rgba(91,142,240,.12);
+
+      --r-sm: 8px;
+      --r-md: 12px;
+      --r-lg: 18px;
+      --r-xl: 24px;
+
+      --ease: cubic-bezier(.4,0,.2,1);
+      --ease-spring: cubic-bezier(.34,1.56,.64,1);
+
+      --glass: rgba(255,255,255,.04);
+      --glass-border: rgba(255,255,255,.1);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Playfair Display', serif;
+      line-height: 1.2;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: 'Outfit', sans-serif; border: none; background: none; }
+    input, select, textarea { font-family: 'Outfit', sans-serif; }
+    img { display: block; }
+
+    /* ═══════════════════════════════════════════════════════
+       SCROLLBAR
+    ═══════════════════════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+
+    /* ═══════════════════════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════════════════════ */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 900;
+      padding: 0 5%;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background .4s var(--ease), box-shadow .4s var(--ease);
+    }
+
+    .navbar.scrolled {
+      background: rgba(10,12,15,.92);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 var(--border), 0 8px 32px rgba(0,0,0,.4);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      color: var(--text);
+    }
+
+    .nav-logo-text span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      padding: 7px 16px;
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--text-2);
+      border-radius: var(--r-sm);
+      transition: color .2s, background .2s;
+      letter-spacing: .02em;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--text);
+      background: var(--glass);
+    }
+
+    .nav-links a.active { color: var(--gold); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-add-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: #0a0c0f;
+      border-radius: var(--r-md);
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      transition: opacity .2s, transform .2s var(--ease-spring), box-shadow .2s;
+      box-shadow: 0 4px 20px var(--gold-glow);
+    }
+
+    .nav-add-btn:hover {
+      opacity: .92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px var(--gold-glow);
+    }
+
+    .nav-add-btn:active { transform: translateY(0); }
+
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      padding: 6px;
+      border-radius: var(--r-sm);
+      transition: background .2s;
+    }
+
+    .hamburger:hover { background: var(--glass); }
+
+    .hamburger span {
+      display: block;
+      width: 22px; height: 2px;
+      background: var(--text-2);
+      border-radius: 2px;
+      transition: all .3s var(--ease);
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Mobile nav drawer */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 68px; left: 0; right: 0;
+      background: rgba(10,12,15,.97);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 5% 24px;
+      z-index: 899;
+      transform: translateY(-10px);
+      opacity: 0;
+      transition: all .3s var(--ease);
+      pointer-events: none;
+    }
+
+    .mobile-nav.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .mobile-nav ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .mobile-nav ul a {
+      display: block;
+      padding: 12px 16px;
+      font-size: .95rem;
+      font-weight: 500;
+      color: var(--text-2);
+      border-radius: var(--r-md);
+      transition: all .2s;
+    }
+
+    .mobile-nav ul a:hover { background: var(--surface-2); color: var(--text); }
+
+    /* ═══════════════════════════════════════════════════════
+       HERO SECTION
+    ═══════════════════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding: 100px 5% 80px;
+    }
+
+    /* Cinematic film strip background */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 40%, rgba(201,168,76,.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 10% 80%, rgba(91,142,240,.06) 0%, transparent 60%),
+        linear-gradient(160deg, #0d0f14 0%, #0a0c0f 100%);
+      z-index: 0;
+    }
+
+    .hero-grain {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: .4;
+      z-index: 0;
+    }
+
+    /* Decorative film strip lines */
+    .hero-lines {
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 45%;
+      z-index: 0;
+      overflow: hidden;
+      opacity: .07;
+    }
+
+    .hero-lines::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 60px,
+        rgba(255,255,255,.5) 60px,
+        rgba(255,255,255,.5) 62px
+      );
+    }
+
+    .hero-lines::after {
+      content: '';
+      position: absolute;
+      left: 40px; right: 40px; top: 0; bottom: 0;
+      border-left: 1px solid rgba(255,255,255,.5);
+      border-right: 1px solid rgba(255,255,255,.5);
+    }
+
+    /* Floating cards decoration */
+    .hero-deco {
+      position: absolute;
+      right: 5%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 340px;
+      z-index: 1;
+      display: grid;
+      gap: 14px;
+    }
+
+    .deco-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg);
+      padding: 16px 20px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      animation: floatCard 6s ease-in-out infinite;
+    }
+
+    .deco-card:nth-child(2) { animation-delay: -2s; transform: translateX(20px); }
+    .deco-card:nth-child(3) { animation-delay: -4s; }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .deco-card:nth-child(2) {
+      animation-name: floatCard2;
+    }
+
+    @keyframes floatCard2 {
+      0%, 100% { transform: translateX(20px) translateY(0); }
+      50% { transform: translateX(20px) translateY(-8px); }
+    }
+
+    .deco-poster {
+      width: 44px; height: 60px;
+      border-radius: var(--r-sm);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .deco-info { flex: 1; min-width: 0; }
+
+    .deco-title {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .deco-meta {
+      font-size: .75rem;
+      color: var(--text-2);
+      margin-top: 2px;
+    }
+
+    .deco-stars {
+      font-size: .7rem;
+      color: var(--gold);
+      margin-top: 3px;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 580px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gold-glow);
+      border: 1px solid rgba(201,168,76,.3);
+      color: var(--gold-2);
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.7); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.8rem, 6vw, 4.8rem);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      color: var(--text);
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold);
+      display: block;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-2);
+      font-weight: 300;
+      max-width: 440px;
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 14px 28px;
+      border-radius: var(--r-md);
+      font-size: .95rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      transition: all .25s var(--ease-spring);
+    }
+
+    .btn-hero-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: #0a0c0f;
+      box-shadow: 0 8px 32px var(--gold-glow);
+    }
+
+    .btn-hero-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 40px var(--gold-glow);
+    }
+
+    .btn-hero-secondary {
+      background: var(--glass);
+      color: var(--text);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-hero-secondary:hover {
+      background: var(--surface-2);
+      border-color: var(--border-2);
+      transform: translateY(-2px);
+    }
+
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 2;
+      color: var(--text-3);
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .scroll-mouse {
+      width: 22px; height: 34px;
+      border: 1.5px solid var(--text-3);
+      border-radius: 11px;
+      display: flex;
+      justify-content: center;
+      padding-top: 6px;
+    }
+
+    .scroll-mouse::after {
+      content: '';
+      width: 3px; height: 6px;
+      background: var(--text-3);
+      border-radius: 2px;
+      animation: scrollDown 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scrollDown {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(10px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════════════════════════════ */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 5% 100px;
+    }
+
+    /* Section reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .6s var(--ease), transform .6s var(--ease);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Section label */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .section-label h2 {
+      font-size: 1.9rem;
+      letter-spacing: -.02em;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       STATS SECTION
+    ═══════════════════════════════════════════════════════ */
+    .stats-section {
+      padding: 60px 0 40px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, transform .3s var(--ease-spring), box-shadow .3s;
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-2);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.3);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-card.total::before   { background: linear-gradient(90deg, var(--gold), transparent); }
+    .stat-card.watched::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .stat-card.pending::before { background: linear-gradient(90deg, var(--blue), transparent); }
+
+    .stat-card-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+
+    .stat-card.total   .stat-card-icon { background: var(--gold-glow); }
+    .stat-card.watched .stat-card-icon { background: var(--green-light); }
+    .stat-card.pending .stat-card-icon { background: var(--blue-light); }
+
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-card.total   .stat-number { color: var(--gold-2); }
+    .stat-card.watched .stat-number { color: var(--green); }
+    .stat-card.pending .stat-number { color: var(--blue); }
+
+    .stat-desc {
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       ADD MOVIE SECTION
+    ═══════════════════════════════════════════════════════ */
+    .add-section {
+      padding: 40px 0;
+    }
+
+    .add-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .add-card::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .add-form-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .form-field label {
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .form-field input,
+    .form-field select {
+      padding: 11px 14px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text);
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      width: 100%;
+    }
+
+    .form-field input::placeholder { color: var(--text-3); }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    .form-field select option { background: var(--surface-2); }
+
+    /* Rating stars selector */
+    .star-rating {
+      display: flex;
+      gap: 4px;
+      padding: 8px 10px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      transition: border-color .2s;
+    }
+
+    .star-rating:focus-within { border-color: var(--gold); }
+
+    .star-rating input[type="radio"] { display: none; }
+
+    .star-rating label {
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: var(--text-3);
+      line-height: 1;
+      transition: color .15s, transform .15s var(--ease-spring);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .star-rating input[type="radio"]:checked ~ label,
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+      color: var(--gold);
+    }
+
+    /* Reverse trick for CSS star rating */
+    .star-rating {
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label { color: var(--gold); }
+
+    .star-rating input[type="radio"]:checked ~ label { color: var(--gold); }
+
+    .star-label-text {
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 7px;
+      display: block;
+    }
+
+    .add-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 20px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: #0a0c0f;
+      border-radius: var(--r-md);
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      transition: all .25s var(--ease-spring);
+      box-shadow: 0 4px 20px var(--gold-glow);
+      white-space: nowrap;
+    }
+
+    .add-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px var(--gold-glow);
+    }
+
+    .add-btn:active { transform: translateY(0); }
+
+    .err-msg {
+      font-size: .75rem;
+      color: var(--red);
+      margin-top: 4px;
+      display: none;
+    }
+
+    .err-msg.show { display: block; }
+    .input-error { border-color: var(--red) !important; }
+
+    /* ═══════════════════════════════════════════════════════
+       WATCHLIST SECTION
+    ═══════════════════════════════════════════════════════ */
+    .watchlist-section {
+      padding: 40px 0;
+    }
+
+    /* Search & Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 11px 14px 11px 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text);
+      font-size: .88rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .search-input::placeholder { color: var(--text-3); }
+
+    .search-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      background: transparent;
+      color: var(--text-3);
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .04em;
+      transition: all .2s;
+    }
+
+    .pill:hover {
+      border-color: var(--border-2);
+      color: var(--text-2);
+    }
+
+    .pill.active {
+      background: var(--gold-glow);
+      border-color: rgba(201,168,76,.4);
+      color: var(--gold-2);
+    }
+
+    .filter-select {
+      padding: 9px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text-2);
+      font-size: .82rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+
+    .filter-select:focus { border-color: var(--gold); }
+    .filter-select option { background: var(--surface-2); }
+
+    /* Movies grid */
+    .movies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px;
+    }
+
+    /* Movie card */
+    .movie-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      transition: border-color .3s, transform .3s var(--ease-spring), box-shadow .3s;
+      animation: cardIn .35s var(--ease) both;
+      position: relative;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(16px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .movie-card:hover {
+      border-color: var(--border-2);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,.4);
+    }
+
+    /* Poster area */
+    .card-poster {
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-poster::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: linear-gradient(transparent, var(--surface));
+    }
+
+    /* Genre-based poster color themes */
+    .card-poster[data-genre="action"]  { background: linear-gradient(135deg, #1a0a0a, #2a1010); }
+    .card-poster[data-genre="comedy"]  { background: linear-gradient(135deg, #0a1a0a, #102a10); }
+    .card-poster[data-genre="drama"]   { background: linear-gradient(135deg, #0a0a1a, #10102a); }
+    .card-poster[data-genre="horror"]  { background: linear-gradient(135deg, #1a0a16, #2a1020); }
+    .card-poster[data-genre="sci-fi"]  { background: linear-gradient(135deg, #0a101a, #10182a); }
+    .card-poster[data-genre="romance"] { background: linear-gradient(135deg, #1a0a10, #2a1018); }
+    .card-poster[data-genre="thriller"]{ background: linear-gradient(135deg, #141008, #201808); }
+    .card-poster[data-genre="animation"]{ background: linear-gradient(135deg, #101a0a, #18280a); }
+    .card-poster[data-genre="default"] { background: linear-gradient(135deg, #0f1118, #13161e); }
+
+    /* Status accent stripe */
+    .card-stripe {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .movie-card[data-status="planned"]   .card-stripe { background: var(--blue); }
+    .movie-card[data-status="watching"]  .card-stripe { background: var(--gold); }
+    .movie-card[data-status="completed"] .card-stripe { background: var(--green); }
+    .movie-card[data-status="favorites"] .card-stripe { background: var(--red); }
+
+    .card-body {
+      padding: 16px 20px 20px;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .card-btns {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 30px; height: 30px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-3);
+      font-size: .78rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+
+    .icon-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--border-2);
+      color: var(--text);
+    }
+
+    .icon-btn.fav-btn:hover,
+    .icon-btn.fav-btn.active {
+      background: var(--red-light);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .icon-btn.edit-btn:hover {
+      background: var(--blue-light);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .icon-btn.delete-btn:hover {
+      background: var(--red-light);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .icon-btn.watch-btn:hover,
+    .icon-btn.watch-btn.active {
+      background: var(--green-light);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .badge-status-planned   { background: var(--blue-light);  color: var(--blue);  }
+    .badge-status-watching  { background: var(--gold-glow);   color: var(--gold-2); }
+    .badge-status-completed { background: var(--green-light); color: var(--green); }
+    .badge-status-favorites { background: var(--red-light);   color: var(--red);   }
+
+    .badge-genre {
+      background: var(--surface-3);
+      color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+
+    .badge-year {
+      background: transparent;
+      color: var(--text-3);
+      border: 1px solid var(--border);
+    }
+
+    .card-rating {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 12px;
+    }
+
+    .card-rating span {
+      font-size: .85rem;
+      color: var(--text-3);
+    }
+
+    .card-rating span.lit { color: var(--gold); }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .card-action-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: var(--r-sm);
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-3);
+      transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+
+    .card-action-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--border-2);
+      color: var(--text);
+    }
+
+    .card-action-btn.mark-watched.done {
+      background: var(--green-light);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════════════════════ */
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 80px; height: 80px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .empty-icon::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: var(--r-lg);
+      background: linear-gradient(135deg, var(--gold-glow), transparent);
+      z-index: -1;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      font-size: .9rem;
+      color: var(--text-3);
+      max-width: 300px;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       EDIT MODAL
+    ═══════════════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s var(--ease);
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: var(--r-xl);
+      padding: 36px;
+      width: 100%;
+      max-width: 540px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 40px 80px rgba(0,0,0,.6);
+      transform: translateY(20px) scale(.96);
+      transition: transform .35s var(--ease-spring);
+      position: relative;
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .modal-title { font-size: 1.6rem; }
+
+    .modal-close {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--text-3);
+      font-size: .95rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+
+    .modal-close:hover {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-2);
+    }
+
+    .modal-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .modal-form-grid .form-field.full { grid-column: 1 / -1; }
+
+    .modal-field label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 7px;
+    }
+
+    .modal-field input,
+    .modal-field select,
+    .modal-field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text);
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .modal-field input:focus,
+    .modal-field select:focus,
+    .modal-field textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    .modal-field input::placeholder { color: var(--text-3); }
+    .modal-field textarea { resize: vertical; min-height: 80px; }
+    .modal-field select option { background: var(--surface-2); }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .btn-cancel {
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      background: transparent;
+      color: var(--text-2);
+      font-size: .875rem;
+      font-weight: 500;
+      transition: all .2s;
+    }
+
+    .btn-cancel:hover {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-2);
+    }
+
+    .btn-save {
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: #0a0c0f;
+      border-radius: var(--r-md);
+      font-size: .875rem;
+      font-weight: 700;
+      transition: all .2s var(--ease-spring);
+      box-shadow: 0 4px 16px var(--gold-glow);
+    }
+
+    .btn-save:hover {
+      opacity: .9;
+      transform: translateY(-1px);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       CONFIRM DIALOG
+    ═══════════════════════════════════════════════════════ */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.8);
+      backdrop-filter: blur(4px);
+      z-index: 1100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+
+    .confirm-overlay.open { opacity: 1; pointer-events: all; }
+
+    .confirm-box {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: var(--r-xl);
+      padding: 32px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 40px 80px rgba(0,0,0,.6);
+    }
+
+    .confirm-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .confirm-box h3 { font-size: 1.3rem; margin-bottom: 10px; }
+
+    .confirm-box p {
+      font-size: .875rem;
+      color: var(--text-2);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .confirm-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-confirm-delete {
+      padding: 10px 24px;
+      background: var(--red);
+      color: #fff;
+      border-radius: var(--r-md);
+      font-size: .875rem;
+      font-weight: 600;
+      transition: opacity .2s;
+    }
+
+    .btn-confirm-delete:hover { opacity: .85; }
+
+    /* ═══════════════════════════════════════════════════════
+       TOAST NOTIFICATION
+    ═══════════════════════════════════════════════════════ */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: var(--r-md);
+      font-size: .875rem;
+      font-weight: 500;
+      z-index: 2000;
+      opacity: 0;
+      transition: all .3s var(--ease-spring);
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════ */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-brand .nav-logo-icon {
+      width: 28px; height: 28px;
+      font-size: .8rem;
+    }
+
+    .footer-brand-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--text-2);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: .82rem;
+      color: var(--text-3);
+      transition: color .2s;
+    }
+
+    .footer-links a:hover { color: var(--text-2); }
+
+    .footer-copy {
+      font-size: .78rem;
+      color: var(--text-3);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .mobile-nav { display: block; }
+      .hero-deco { display: none; }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+      .add-form-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 88px 5% 60px; min-height: auto; }
+      .hero-title { font-size: 2.4rem; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .add-form-grid { grid-template-columns: 1fr; }
+      .movies-grid { grid-template-columns: 1fr; }
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .modal { padding: 24px 20px; }
+      .modal-form-grid { grid-template-columns: 1fr; }
+      .hero-scroll-hint { display: none; }
+      .add-card { padding: 24px 20px; }
+      .footer { flex-direction: column; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+      .nav-add-btn span { display: none; }
+    }
+
+    @media (max-width: 400px) {
+      .hero-ctas { flex-direction: column; }
+      .btn-hero { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════ NAVBAR ════════════════════════ -->
+  <nav class="navbar" id="navbar">
+    <a href="#home" class="nav-logo">
+      <div class="nav-logo-icon">🎬</div>
+      <span class="nav-logo-text">Cine<span>Vault</span></span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#home" class="active" data-nav="home">Home</a></li>
+      <li><a href="#watchlist" data-nav="watchlist">Watchlist</a></li>
+      <li><a href="#favorites" data-nav="favorites">Favorites</a></li>
+      <li><a href="#about" data-nav="about">About</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <button class="nav-add-btn" id="navAddBtn" aria-label="Add movie">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span>Add Movie</span>
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div class="mobile-nav" id="mobileNav">
+    <ul>
+      <li><a href="#home"      onclick="closeMobileNav()">Home</a></li>
+      <li><a href="#watchlist" onclick="closeMobileNav()">Watchlist</a></li>
+      <li><a href="#favorites" onclick="closeMobileNav()">Favorites</a></li>
+      <li><a href="#about"     onclick="closeMobileNav()">About</a></li>
+    </ul>
+  </div>
+
+  <!-- ════════════════════════ HERO ════════════════════════ -->
+  <section class="hero" id="home">
+    <div class="hero-bg"></div>
+    <div class="hero-grain"></div>
+    <div class="hero-lines"></div>
+
+    <!-- Floating preview cards -->
+    <div class="hero-deco">
+      <div class="deco-card">
+        <div class="deco-poster" style="background:linear-gradient(135deg,#1a0a0a,#2a1010)">🎭</div>
+        <div class="deco-info">
+          <div class="deco-title">The Godfather</div>
+          <div class="deco-meta">Crime · 1972</div>
+          <div class="deco-stars">★★★★★</div>
+        </div>
+      </div>
+      <div class="deco-card">
+        <div class="deco-poster" style="background:linear-gradient(135deg,#0a0a1a,#10102a)">🚀</div>
+        <div class="deco-info">
+          <div class="deco-title">Interstellar</div>
+          <div class="deco-meta">Sci-Fi · 2014</div>
+          <div class="deco-stars">★★★★★</div>
+        </div>
+      </div>
+      <div class="deco-card">
+        <div class="deco-poster" style="background:linear-gradient(135deg,#0a1a0a,#102a10)">🎪</div>
+        <div class="deco-info">
+          <div class="deco-title">Parasite</div>
+          <div class="deco-meta">Thriller · 2019</div>
+          <div class="deco-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow">Your Personal Cinema</div>
+      <h1 class="hero-title">
+        Track Every Film
+        <em>You've Ever Loved</em>
+      </h1>
+      <p class="hero-sub">Build your ultimate watchlist. Rate movies, track progress, and never forget a film recommendation again.</p>
+      <div class="hero-ctas">
+        <a href="#add-movie" class="btn-hero btn-hero-primary" id="heroAddBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          Start Your List
+        </a>
+        <a href="#watchlist" class="btn-hero btn-hero-secondary">
+          Browse Watchlist
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-scroll-hint">
+      <div class="scroll-mouse"></div>
+      Scroll
+    </div>
+  </section>
+
+  <!-- ════════════════════════ MAIN CONTENT ════════════════════════ -->
+  <div class="main-content">
+
+    <!-- STATS -->
+    <section class="stats-section reveal" id="about">
+      <div class="section-label">
+        <h2>Your Stats</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-card-icon">🎬</div>
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-desc">Total Movies</div>
+        </div>
+        <div class="stat-card watched">
+          <div class="stat-card-icon">✅</div>
+          <div class="stat-number" id="statWatched">0</div>
+          <div class="stat-desc">Watched</div>
+        </div>
+        <div class="stat-card pending">
+          <div class="stat-card-icon">⏳</div>
+          <div class="stat-number" id="statPending">0</div>
+          <div class="stat-desc">Remaining</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADD MOVIE -->
+    <section class="add-section reveal" id="add-movie">
+      <div class="section-label">
+        <h2>Add a Movie</h2>
+      </div>
+      <div class="add-card">
+        <div class="add-form-grid" id="addForm">
+          <div class="form-field">
+            <label for="addTitle">Movie Title <span style="color:var(--red)">*</span></label>
+            <input type="text" id="addTitle" placeholder="e.g. The Dark Knight" maxlength="120" autocomplete="off" />
+            <span class="err-msg" id="errTitle">Title is required.</span>
+          </div>
+          <div class="form-field">
+            <label for="addGenre">Genre</label>
+            <select id="addGenre">
+              <option value="">Select genre…</option>
+              <option value="action">Action</option>
+              <option value="comedy">Comedy</option>
+              <option value="drama">Drama</option>
+              <option value="horror">Horror</option>
+              <option value="sci-fi">Sci-Fi</option>
+              <option value="romance">Romance</option>
+              <option value="thriller">Thriller</option>
+              <option value="animation">Animation</option>
+              <option value="documentary">Documentary</option>
+              <option value="fantasy">Fantasy</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="addYear">Year</label>
+            <input type="number" id="addYear" placeholder="2024" min="1888" max="2100" />
+          </div>
+          <div class="form-field">
+            <label for="addStatus">Status</label>
+            <select id="addStatus">
+              <option value="planned">📋 Planned</option>
+              <option value="watching">👁 Watching</option>
+              <option value="completed">✅ Completed</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <span class="star-label-text">Rating</span>
+            <div class="star-rating" id="addRatingWrap">
+              <input type="radio" id="s5" name="addRating" value="5"><label for="s5">★</label>
+              <input type="radio" id="s4" name="addRating" value="4"><label for="s4">★</label>
+              <input type="radio" id="s3" name="addRating" value="3"><label for="s3">★</label>
+              <input type="radio" id="s2" name="addRating" value="2"><label for="s2">★</label>
+              <input type="radio" id="s1" name="addRating" value="1" checked><label for="s1">★</label>
+            </div>
+          </div>
+          <div class="form-field" style="grid-column: span 3; align-self: end;">
+            <button class="add-btn" id="addMovieBtn">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+              Add to Watchlist
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WATCHLIST -->
+    <section class="watchlist-section reveal" id="watchlist">
+      <div class="section-label">
+        <h2>My Watchlist</h2>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search by title or genre…" autocomplete="off" />
+        </div>
+        <div class="filter-pills">
+          <button class="pill active" data-filter="all">All</button>
+          <button class="pill" data-filter="planned">Planned</button>
+          <button class="pill" data-filter="watching">Watching</button>
+          <button class="pill" data-filter="completed">Completed</button>
+          <button class="pill" data-filter="favorites">❤ Favorites</button>
+        </div>
+        <select class="filter-select" id="sortSelect">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="title-az">Title A–Z</option>
+          <option value="title-za">Title Z–A</option>
+          <option value="rating-high">Highest Rated</option>
+          <option value="year-new">Year (Newest)</option>
+          <option value="year-old">Year (Oldest)</option>
+        </select>
+      </div>
+
+      <!-- Grid -->
+      <div class="movies-grid" id="moviesGrid"></div>
+    </section>
+
+    <!-- FAVORITES ANCHOR -->
+    <div id="favorites" style="height:1px;margin-top:-1px;"></div>
+
+  </div><!-- /main-content -->
+
+  <!-- ════════════════════════ FOOTER ════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-brand">
+      <div class="nav-logo-icon">🎬</div>
+      <span class="footer-brand-text">CineVault</span>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#watchlist">Watchlist</a></li>
+      <li><a href="#favorites">Favorites</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <p class="footer-copy">© 2025 CineVault. All rights reserved.</p>
+  </footer>
+
+  <!-- ════════════════════════ EDIT MODAL ════════════════════════ -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="editModalTitle">Edit Movie</h2>
+        <button class="modal-close" id="editModalClose">✕</button>
+      </div>
+      <input type="hidden" id="editId" />
+      <div class="modal-form-grid">
+        <div class="modal-field form-field full">
+          <label for="editTitle">Movie Title</label>
+          <input type="text" id="editTitle" placeholder="Movie title" maxlength="120" />
+        </div>
+        <div class="modal-field form-field">
+          <label for="editGenre">Genre</label>
+          <select id="editGenre">
+            <option value="">Select genre…</option>
+            <option value="action">Action</option>
+            <option value="comedy">Comedy</option>
+            <option value="drama">Drama</option>
+            <option value="horror">Horror</option>
+            <option value="sci-fi">Sci-Fi</option>
+            <option value="romance">Romance</option>
+            <option value="thriller">Thriller</option>
+            <option value="animation">Animation</option>
+            <option value="documentary">Documentary</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="modal-field form-field">
+          <label for="editYear">Year</label>
+          <input type="number" id="editYear" placeholder="2024" min="1888" max="2100" />
+        </div>
+        <div class="modal-field form-field">
+          <label for="editStatus">Status</label>
+          <select id="editStatus">
+            <option value="planned">📋 Planned</option>
+            <option value="watching">👁 Watching</option>
+            <option value="completed">✅ Completed</option>
+          </select>
+        </div>
+        <div class="modal-field form-field">
+          <label>Rating</label>
+          <div class="star-rating" id="editRatingWrap" style="padding:10px 14px;background:var(--surface-3);border:1px solid var(--border);border-radius:var(--r-md);">
+            <input type="radio" id="e5" name="editRating" value="5"><label for="e5">★</label>
+            <input type="radio" id="e4" name="editRating" value="4"><label for="e4">★</label>
+            <input type="radio" id="e3" name="editRating" value="3"><label for="e3">★</label>
+            <input type="radio" id="e2" name="editRating" value="2"><label for="e2">★</label>
+            <input type="radio" id="e1" name="editRating" value="1"><label for="e1">★</label>
+          </div>
+        </div>
+        <div class="modal-field form-field full">
+          <label for="editNotes">Notes</label>
+          <textarea id="editNotes" placeholder="Your thoughts, recommendations…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" id="editModalCancel">Cancel</button>
+        <button class="btn-save" id="editModalSave">Update Movie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════ CONFIRM DIALOG ════════════════════════ -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <div class="confirm-icon">🗑️</div>
+      <h3>Delete Movie?</h3>
+      <p>This will permanently remove the movie from your watchlist. This action cannot be undone.</p>
+      <div class="confirm-btns">
+        <button class="btn-cancel" id="confirmCancel">Cancel</button>
+        <button class="btn-confirm-delete" id="confirmOk">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════ TOAST ════════════════════════ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ════════════════════════ SCRIPT ════════════════════════ -->
+  <script>
+    /* ══════════════════════════ STATE ══════════════════════════ */
+    const STORE = 'cinevault_v2';
+    let movies       = [];
+    let activeFilter = 'all';
+    let searchQuery  = '';
+    let sortKey      = 'newest';
+    let editingId    = null;
+    let deletingId   = null;
+
+    const GENRE_EMOJI = {
+      action:'🔥', comedy:'😂', drama:'🎭', horror:'👻',
+      'sci-fi':'🚀', romance:'💕', thriller:'🕵️', animation:'🎪',
+      documentary:'📽️', fantasy:'🧙', other:'🎬', '':'🎬'
+    };
+
+    /* ══════════════════════════ STORAGE ══════════════════════════ */
+    function load() {
+      try { movies = JSON.parse(localStorage.getItem(STORE)) || []; }
+      catch { movies = []; }
+    }
+
+    function save() {
+      localStorage.setItem(STORE, JSON.stringify(movies));
+    }
+
+    /* ══════════════════════════ UTILS ══════════════════════════ */
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function esc(str) {
+      return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    /* ══════════════════════════ RENDER ══════════════════════════ */
+    function getVisible() {
+      let list = [...movies];
+
+      // Search
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter(m =>
+          m.title.toLowerCase().includes(q) ||
+          (m.genre && m.genre.toLowerCase().includes(q))
+        );
+      }
+
+      // Filter
+      if (activeFilter === 'favorites') {
+        list = list.filter(m => m.favorite);
+      } else if (activeFilter !== 'all') {
+        list = list.filter(m => m.status === activeFilter);
+      }
+
+      // Sort
+      list.sort((a, b) => {
+        switch (sortKey) {
+          case 'oldest':      return a.addedAt - b.addedAt;
+          case 'title-az':   return a.title.localeCompare(b.title);
+          case 'title-za':   return b.title.localeCompare(a.title);
+          case 'rating-high':return (b.rating || 0) - (a.rating || 0);
+          case 'year-new':   return (b.year || 0) - (a.year || 0);
+          case 'year-old':   return (a.year || 0) - (b.year || 0);
+          default:           return b.addedAt - a.addedAt;
+        }
+      });
+
+      return list;
+    }
+
+    function starsHTML(rating, id) {
+      let html = '<div class="card-rating">';
+      for (let i = 1; i <= 5; i++) {
+        html += `<span class="${i <= (rating || 0) ? 'lit' : ''}">★</span>`;
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function buildCard(m) {
+      const genre   = m.genre || '';
+      const emoji   = GENRE_EMOJI[genre] || '🎬';
+      const genreKey = genre || 'default';
+
+      const statusLabel = { planned:'Planned', watching:'Watching', completed:'Completed' }[m.status] || m.status;
+
+      return `
+        <div class="movie-card" data-id="${m.id}" data-status="${esc(m.status)}">
+          <div class="card-stripe"></div>
+          <div class="card-poster" data-genre="${esc(genreKey)}">${emoji}</div>
+          <div class="card-body">
+            <div class="card-top">
+              <h3 class="card-title">${esc(m.title)}</h3>
+              <div class="card-btns">
+                <button class="icon-btn fav-btn ${m.favorite ? 'active' : ''}" data-id="${m.id}" title="Favorite">♥</button>
+                <button class="icon-btn edit-btn" data-id="${m.id}" title="Edit">✎</button>
+                <button class="icon-btn delete-btn" data-id="${m.id}" title="Delete">🗑</button>
+              </div>
+            </div>
+            <div class="card-meta">
+              <span class="badge badge-status-${esc(m.status)}">${esc(statusLabel)}</span>
+              ${genre ? `<span class="badge badge-genre">${esc(genre)}</span>` : ''}
+              ${m.year ? `<span class="badge badge-year">${esc(String(m.year))}</span>` : ''}
+            </div>
+            ${starsHTML(m.rating)}
+            <div class="card-actions">
+              <button class="card-action-btn mark-watched ${m.status === 'completed' ? 'done' : ''}" data-id="${m.id}">
+                ${m.status === 'completed' ? '✓ Watched' : '👁 Mark Watched'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMovies() {
+      const grid = document.getElementById('moviesGrid');
+      const list = getVisible();
+
+      if (!list.length) {
+        const isEmpty = !movies.length;
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">${isEmpty ? '🎬' : '🔍'}</div>
+            <h3>${isEmpty ? 'Your list is empty' : 'No results found'}</h3>
+            <p>${isEmpty ? 'Add your first movie above to get started.' : 'Try adjusting your search or filter.'}</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(buildCard).join('');
+      bindCardEvents();
+    }
+
+    function bindCardEvents() {
+      const grid = document.getElementById('moviesGrid');
+
+      grid.querySelectorAll('.fav-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          toggleFavorite(btn.dataset.id);
+        });
+      });
+
+      grid.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openEditModal(btn.dataset.id);
+        });
+      });
+
+      grid.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openConfirm(btn.dataset.id);
+        });
+      });
+
+      grid.querySelectorAll('.mark-watched').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          toggleWatched(btn.dataset.id);
+        });
+      });
+    }
+
+    function updateStats() {
+      const total    = movies.length;
+      const watched  = movies.filter(m => m.status === 'completed').length;
+      const pending  = movies.filter(m => m.status !== 'completed').length;
+
+      animateNumber('statTotal',   total);
+      animateNumber('statWatched', watched);
+      animateNumber('statPending', pending);
+    }
+
+    function animateNumber(id, target) {
+      const el = document.getElementById(id);
+      const start = parseInt(el.textContent) || 0;
+      if (start === target) return;
+      const step = target > start ? 1 : -1;
+      let cur = start;
+      const interval = setInterval(() => {
+        cur += step;
+        el.textContent = cur;
+        if (cur === target) clearInterval(interval);
+      }, 50);
+    }
+
+    function refresh() {
+      updateStats();
+      renderMovies();
+    }
+
+    /* ══════════════════════════ CRUD ══════════════════════════ */
+    function addMovie() {
+      const title = document.getElementById('addTitle').value.trim();
+      const errEl = document.getElementById('errTitle');
+      const inp   = document.getElementById('addTitle');
+
+      // Validate
+      inp.classList.remove('input-error');
+      errEl.classList.remove('show');
+
+      if (!title) {
+        inp.classList.add('input-error');
+        errEl.classList.add('show');
+        inp.focus();
+        return;
+      }
+
+      const genre  = document.getElementById('addGenre').value;
+      const year   = parseInt(document.getElementById('addYear').value) || null;
+      const status = document.getElementById('addStatus').value;
+      const rating = parseInt(document.querySelector('input[name="addRating"]:checked')?.value) || 1;
+
+      const movie = { id: uid(), addedAt: Date.now(), title, genre, year, status, rating, favorite: false };
+      movies.unshift(movie);
+      save();
+
+      // Reset form
+      document.getElementById('addTitle').value = '';
+      document.getElementById('addGenre').value = '';
+      document.getElementById('addYear').value  = '';
+      document.getElementById('addStatus').value = 'planned';
+      const s1 = document.getElementById('s1');
+      if (s1) s1.checked = true;
+
+      refresh();
+      showToast(`"${title}" added to your watchlist! 🎬`);
+    }
+
+    function toggleFavorite(id) {
+      const m = movies.find(x => x.id === id);
+      if (!m) return;
+      m.favorite = !m.favorite;
+      save();
+      refresh();
+      showToast(m.favorite ? '❤ Added to Favorites' : 'Removed from Favorites');
+    }
+
+    function toggleWatched(id) {
+      const m = movies.find(x => x.id === id);
+      if (!m) return;
+      m.status = m.status === 'completed' ? 'planned' : 'completed';
+      save();
+      refresh();
+      showToast(m.status === 'completed' ? '✅ Marked as Watched' : 'Moved back to Planned');
+    }
+
+    function deleteMovie(id) {
+      movies = movies.filter(m => m.id !== id);
+      save();
+      refresh();
+      showToast('Movie deleted.');
+    }
+
+    /* ══════════════════════════ EDIT MODAL ══════════════════════════ */
+    function openEditModal(id) {
+      const m = movies.find(x => x.id === id);
+      if (!m) return;
+      editingId = id;
+
+      document.getElementById('editId').value       = id;
+      document.getElementById('editTitle').value    = m.title;
+      document.getElementById('editGenre').value    = m.genre || '';
+      document.getElementById('editYear').value     = m.year || '';
+      document.getElementById('editStatus').value   = m.status;
+      document.getElementById('editNotes').value    = m.notes || '';
+
+      // Set rating radio
+      const ratingVal = m.rating || 1;
+      const radios = document.querySelectorAll('input[name="editRating"]');
+      radios.forEach(r => { r.checked = parseInt(r.value) === ratingVal; });
+
+      document.getElementById('editModal').classList.add('open');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('open');
+      editingId = null;
+    }
+
+    function saveEdit() {
+      if (!editingId) return;
+      const m = movies.find(x => x.id === editingId);
+      if (!m) return;
+
+      const title = document.getElementById('editTitle').value.trim();
+      if (!title) { document.getElementById('editTitle').focus(); return; }
+
+      m.title  = title;
+      m.genre  = document.getElementById('editGenre').value;
+      m.year   = parseInt(document.getElementById('editYear').value) || null;
+      m.status = document.getElementById('editStatus').value;
+      m.notes  = document.getElementById('editNotes').value.trim();
+      m.rating = parseInt(document.querySelector('input[name="editRating"]:checked')?.value) || 1;
+
+      save();
+      refresh();
+      closeEditModal();
+      showToast('Movie updated! ✎');
+    }
+
+    /* ══════════════════════════ CONFIRM DIALOG ══════════════════════════ */
+    function openConfirm(id) {
+      deletingId = id;
+      document.getElementById('confirmOverlay').classList.add('open');
+    }
+
+    function closeConfirm() {
+      deletingId = null;
+      document.getElementById('confirmOverlay').classList.remove('open');
+    }
+
+    /* ══════════════════════════ NAVBAR ══════════════════════════ */
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 30);
+    });
+
+    document.getElementById('hamburger').addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById('mobileNav').classList.toggle('open');
+    });
+
+    function closeMobileNav() {
+      document.getElementById('hamburger').classList.remove('open');
+      document.getElementById('mobileNav').classList.remove('open');
+    }
+
+    // Active nav link on scroll
+    const sections = ['home','watchlist','favorites','about'];
+    window.addEventListener('scroll', () => {
+      let current = 'home';
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 100) current = id;
+      });
+      document.querySelectorAll('.nav-links a').forEach(a => {
+        a.classList.toggle('active', a.dataset.nav === current);
+      });
+    });
+
+    /* ══════════════════════════ SCROLL REVEAL ══════════════════════════ */
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* ══════════════════════════ EVENTS ══════════════════════════ */
+
+    // Hero + nav add buttons → scroll to add section
+    ['heroAddBtn', 'navAddBtn'].forEach(id => {
+      document.getElementById(id)?.addEventListener('click', e => {
+        e.preventDefault();
+        document.getElementById('add-movie').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => document.getElementById('addTitle').focus(), 600);
+      });
+    });
+
+    // Add movie button
+    document.getElementById('addMovieBtn').addEventListener('click', addMovie);
+
+    // Enter key in title field
+    document.getElementById('addTitle').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addMovie();
+    });
+
+    // Search
+    document.getElementById('searchInput').addEventListener('input', e => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      renderMovies();
+    });
+
+    // Filter pills
+    document.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeFilter = pill.dataset.filter;
+        renderMovies();
+      });
+    });
+
+    // Sort
+    document.getElementById('sortSelect').addEventListener('change', e => {
+      sortKey = e.target.value;
+      renderMovies();
+    });
+
+    // Edit modal
+    document.getElementById('editModalClose').addEventListener('click', closeEditModal);
+    document.getElementById('editModalCancel').addEventListener('click', closeEditModal);
+    document.getElementById('editModalSave').addEventListener('click', saveEdit);
+    document.getElementById('editModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('editModal')) closeEditModal();
+    });
+
+    // Confirm dialog
+    document.getElementById('confirmCancel').addEventListener('click', closeConfirm);
+    document.getElementById('confirmOk').addEventListener('click', () => {
+      if (deletingId) deleteMovie(deletingId);
+      closeConfirm();
+    });
+    document.getElementById('confirmOverlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('confirmOverlay')) closeConfirm();
+    });
+
+    // Escape key
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (document.getElementById('confirmOverlay').classList.contains('open')) closeConfirm();
+      else if (document.getElementById('editModal').classList.contains('open')) closeEditModal();
+    });
+
+    /* ══════════════════════════ BOOT ══════════════════════════ */
+    (function init() {
+      load();
+      refresh();
+    })();
+  </script>
+
+</body>
+</html>
